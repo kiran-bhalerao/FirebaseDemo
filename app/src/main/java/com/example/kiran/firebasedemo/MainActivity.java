@@ -1,5 +1,6 @@
 package com.example.kiran.firebasedemo;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 if (mAuth.getCurrentUser() != null) {
-                    Toast.makeText(MainActivity.this, "Login Successfully "+mAuth.getCurrentUser().getEmail(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, mAuth.getCurrentUser().getEmail(), Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -62,10 +63,10 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "logout Successfully", Toast.LENGTH_LONG).show();
         });
         signupButton.setOnClickListener((v) -> {
-            signUp(emailText.getText().toString(), passText.getText().toString());
+            signUp(emailText.getText().toString().trim(), passText.getText().toString().trim());
         });
         loginButton.setOnClickListener((v) -> {
-            login(emailText.getText().toString(), passText.getText().toString());
+            login(emailText.getText().toString().trim(), passText.getText().toString().trim());
         });
     }
 
@@ -74,7 +75,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (!task.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Wrong data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Wrong data, Login Failed", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Login Successfully " + mAuth.getCurrentUser().getEmail(), Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(MainActivity.this, SecActivity.class);
+                    startActivity(intent);
                 }
             }
         });
@@ -101,5 +106,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(authStateListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAuth.signOut();
+        Toast.makeText(this, "Signout successfully", Toast.LENGTH_SHORT).show();
     }
 }
