@@ -1,6 +1,7 @@
 package com.example.kiran.firebasedemo;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -32,9 +33,7 @@ public class MainActivity extends AppCompatActivity {
     EditText emailText;
     EditText passText;
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener authStateListener;
     Button signupButton;
-    Button logoutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,23 +44,9 @@ public class MainActivity extends AppCompatActivity {
         passText = findViewById(R.id.passText);
         loginButton = findViewById(R.id.loginButton);
         signupButton = findViewById(R.id.signupButton);
-        logoutButton = findViewById(R.id.logoutButton);
 
         mAuth = FirebaseAuth.getInstance();
 
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                if (mAuth.getCurrentUser() != null) {
-                    Toast.makeText(MainActivity.this, mAuth.getCurrentUser().getEmail(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        };
-
-        logoutButton.setOnClickListener((view) -> {
-            mAuth.signOut();
-            Toast.makeText(MainActivity.this, "logout Successfully", Toast.LENGTH_LONG).show();
-        });
         signupButton.setOnClickListener((v) -> {
             signUp(emailText.getText().toString().trim(), passText.getText().toString().trim());
         });
@@ -77,9 +62,15 @@ public class MainActivity extends AppCompatActivity {
                 if (!task.isSuccessful()) {
                     Toast.makeText(MainActivity.this, "Wrong data, Login Failed", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(MainActivity.this, "Login Successfully " + mAuth.getCurrentUser().getEmail(), Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(MainActivity.this, SecActivity.class);
                     startActivity(intent);
+                    Toast.makeText(MainActivity.this, "login Successfully " + mAuth.getCurrentUser().getEmail(), Toast.LENGTH_LONG).show();
+
+                    SharedPreferences sharedPreferences = getSharedPreferences("LoginData", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("isLogin", true);
+                    editor.apply();
+
                 }
             }
         });
@@ -102,16 +93,4 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mAuth.addAuthStateListener(authStateListener);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mAuth.signOut();
-        Toast.makeText(this, "Signout successfully", Toast.LENGTH_SHORT).show();
-    }
 }
